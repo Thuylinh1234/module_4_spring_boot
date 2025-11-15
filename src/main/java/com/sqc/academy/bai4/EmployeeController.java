@@ -1,5 +1,9 @@
 package com.sqc.academy.bai4;
 
+import com.sqc.academy.ApiRespone;
+import com.sqc.academy.Student;
+import com.sqc.academy.exception.ApiException;
+import com.sqc.academy.exception.ErrorCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,8 +36,8 @@ public class EmployeeController {
 
 
     @GetMapping("/employees")
-    public List<Employee> getAllEmployees() {
-        return employees;
+    public ResponseEntity<ApiRespone<List<Employee>>> getAllEmployees() {
+        return ResponseEntity.ok(ApiRespone.<List<Employee>>builder().data(employees).build());
     }
 
 
@@ -44,14 +48,6 @@ public class EmployeeController {
                 .findFirst()
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(404).body("Không tìm thấy nhân viên với ID: " + id));
-    }
-
-
-    @PostMapping
-    public ResponseEntity<String> createEmployee(@RequestBody Employee newEmp) {
-        newEmp.setId(UUID.randomUUID().toString());
-        employees.add(newEmp);
-        return ResponseEntity.ok("Thêm nhân viên thành công!");
     }
 
 

@@ -1,42 +1,17 @@
 package com.sqc.academy;
 
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+@Getter
+@Setter
+@Builder // thiết lập giá trị cho từng thuộc tính 1 cách dễ dàng
+@NoArgsConstructor // ko tham số
+@AllArgsConstructor // có tham có
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Student {
-    private  int id;
-    public  String  name;
-    private double score;
-
-    public Student() {
-    }
-
-    public Student(int id, String name, double score) {
-        this.id = id;
-        this.name = name;
-        this.score = score;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public double getScore() {
-        return score;
-    }
-
-    public void setScore(double score) {
-        this.score = score;
-    }
-
+     int id;
+     String  name;
+     double score;
 
 }
