@@ -1,18 +1,23 @@
 package com.sqc.academy.bai4;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 
-@Getter
-@AllArgsConstructor
-@FieldDefaults(makeFinal = true)
 public enum ErrorCode {
-    EMPLOYEE_NOT_FOUND(40401, "Student is not exist", HttpStatus.NOT_FOUND),
-    ; // ngăn cách nhau các structor bằng ;
-    int code;
-    String message;
-    HttpStatus status;
+    EMPLOYEE_NOT_FOUND(40401, "Employee not found", HttpStatus.NOT_FOUND);
 
+    private final int code;
+    private final String message;
+    private final HttpStatus status;
+
+    // Constructor
+    ErrorCode(int code, String message, HttpStatus status) {
+        this.code = code;
+        this.message = message;
+        this.status = status;
+    }
+
+    // Getter
+    public int getCode() { return code; }
+    public String getMessage() { return message; }
+    public HttpStatus getStatus() { return status; }
 }

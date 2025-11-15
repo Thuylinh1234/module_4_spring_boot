@@ -1,9 +1,7 @@
 package com.sqc.academy.bai4;
-
-import com.sqc.academy.ApiRespone;
-import com.sqc.academy.Student;
-import com.sqc.academy.exception.ApiException;
-import com.sqc.academy.exception.ErrorCode;
+import com.sqc.academy.bai4.ApiException;
+import com.sqc.academy.bai4.ErrorCode;
+import com.sqc.academy.bai4.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +20,7 @@ import java.util.UUID;
  * phone
  */
 @RestController
+@RequestMapping("/employees")
 public class EmployeeController {
     private static List<Employee> employees = new ArrayList<>();
 
@@ -35,44 +34,70 @@ public class EmployeeController {
     }
 
 
-    @GetMapping("/employees")
-    public ResponseEntity<ApiRespone<List<Employee>>> getAllEmployees() {
-        return ResponseEntity.ok(ApiRespone.<List<Employee>>builder().data(employees).build());
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<Employee>>> getAllEmployees() {
+        return ResponseEntity.ok(ApiResponse.<List<Employee>>builder().data(employees).build());
     }
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getEmployeeById(@PathVariable String id) {
-        return employees.stream()
-                .filter(e -> e.getId().equals(id))
-                .findFirst()
-                .<ResponseEntity<?>>map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(404).body("Không tìm thấy nhân viên với ID: " + id));
+    public Object getEmployeeById(@PathVariable String id) {
+        Employee found = null;
+        for (Employee e : employees) {
+            if (e.getId().equals(id)) {   // so sánh ID
+                found = e;
+                break;
+            }
+        }
+
+        if (found == null) {
+            throw new ApiException(ErrorCode.EMPLOYEE_NOT_FOUND);
+        }
+
+        return JsonResponse.ok(found); // Trả về response
     }
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateEmployee(@PathVariable String id, @RequestBody Employee updatedEmp) {
+    public Object updateEmployee(@PathVariable String id, @RequestBody Employee updatedEmp) {
+        Employee empToUpdate = null; // biến tạm
+
         for (Employee e : employees) {
             if (e.getId().equals(id)) {
-                e.setName(updatedEmp.getName());
-                e.setDob(updatedEmp.getDob());
-                e.setGender(updatedEmp.getGender());
-                e.setSalary(updatedEmp.getSalary());
-                e.setPhone(updatedEmp.getPhone());
-                return ResponseEntity.ok("Cập nhật nhân viên thành công!");
+                empToUpdate = e;
+                break;
             }
         }
-        return ResponseEntity.status(404).body("Không tìm thấy nhân viên với ID: " + id);
+
+        if (empToUpdate == null) { // Kiểm tra nhân viên
+            throw new ApiException(ErrorCode.EMPLOYEE_NOT_FOUND);
+        }
+        // cập nhật
+        empToUpdate.setName(updatedEmp.getName());
+        empToUpdate.setDob(updatedEmp.getDob());
+        empToUpdate.setGender(updatedEmp.getGender());
+        empToUpdate.setSalary(updatedEmp.getSalary());
+        empToUpdate.setPhone(updatedEmp.getPhone());
+
+        return JsonResponse.ok(empToUpdate); // Trả về response
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteEmployee(@PathVariable String id) {
-        boolean removed = employees.removeIf(e -> e.getId().equals(id));
-        if (removed) {
-            return ResponseEntity.ok("Xóa nhân viên thành công!");
-        } else {
-            return ResponseEntity.status(404).body("Không tìm thấy nhân viên với ID: " + id);
+    public Object deleteEmployee(@PathVariable String id) {
+        Employee empToDelete = null;
+
+        for (Employee e : employees) {
+            if (e.getId().equals(id)) {
+                empToDelete = e;
+                break;
+            }
         }
+
+        if (empToDelete == null) {
+            throw new ApiException(ErrorCode.EMPLOYEE_NOT_FOUND);
+        }
+
+        employees.remove(empToDelete);
+        return JsonResponse.noContent();
     }
 }
