@@ -19,6 +19,8 @@ public class Employee {
     private Gender gender;
     private double salary;
     private String phone;
+    Integer departmentId;
+
 
 
 }

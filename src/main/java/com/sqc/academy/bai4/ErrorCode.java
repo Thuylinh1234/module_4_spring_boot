@@ -1,9 +1,16 @@
 package com.sqc.academy.bai4;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.http.HttpStatus;
 
+
 public enum ErrorCode {
-    EMPLOYEE_NOT_FOUND(40401, "Employee not found", HttpStatus.NOT_FOUND);
+    EMPLOYEE_NOT_FOUND(40401, "Employee not found", HttpStatus.NOT_FOUND),
+    DEPARTMENT_NOT_EXISTED(40402, "Department does not exist", HttpStatus.NOT_FOUND);
+
 
     private final int code;
     private final String message;

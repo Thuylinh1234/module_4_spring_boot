@@ -1,4 +1,4 @@
-package com.sqc.academy;
+package com.sqc.academy.model;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -15,3 +15,4 @@ public class Student {
      double score;
 
 }
+

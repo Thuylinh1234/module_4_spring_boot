@@ -1,24 +1,28 @@
-package com.sqc.academy;
+package com.sqc.academy.controller;
 
+import com.sqc.academy.ApiRespone;
 import com.sqc.academy.exception.ApiException;
 import com.sqc.academy.exception.ErrorCode;
+import com.sqc.academy.model.Student;
+import com.sqc.academy.service.IStudentService;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @RestController
 @RequestMapping("/students")
-public class StudentController {
-    private final List<Student> students = new ArrayList<>(
-            Arrays.asList(
-                    Student.builder().id(1).name("Linh").score(2.0).build(),
-                    Student.builder().id(2).name("Lợi").score(3.0).build()
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 
-            ));
+public class StudentController {
+
+    IStudentService studentService;
+
 
     // @RequestMapping(value = "/students", method = RequestMethod.GET)
     @GetMapping
@@ -27,20 +31,22 @@ public class StudentController {
 //    } // thích trả về cái chi thì trả
 
     public ResponseEntity<ApiRespone<List<Student>>>getStudents() {
-        return ResponseEntity.ok(ApiRespone.<List<Student>>builder().data(students).build());
+        return ResponseEntity.ok(ApiRespone.<List<Student>>builder().data(studentService.findAll()).build());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiRespone<Student>> getById(@PathVariable("id") Integer id) {
-        for (Student student : students) {
-            if (student.getId() == id) {
-                //return ResponseEntity.status(HttpStatus.OK).body(student);
-                return ResponseEntity.ok(ApiRespone.<Student>builder()
-                        .data(student)
-                        .build());
-            }
-        }
-        throw new ApiException(ErrorCode.STUDENT_NOT_FOUND);
+       Student student = studentService.findById(id);
+
+       if (student == null) {
+           throw new ApiException(ErrorCode.STUDENT_NOT_FOUND);
+       }
+
+       return ResponseEntity.ok(ApiRespone.<Student>builder()
+               .data(student)
+               .build());
+
+
        // return ResponseEntity.notFound().build();
 //        return ResponseEntity.status(ErrorCode.STUDENT_NOT_FOUND.getStatus()).body(
 //                ApiRespone.<Student>builder()
@@ -48,14 +54,15 @@ public class StudentController {
 //                .message(ErrorCode.STUDENT_NOT_FOUND.getMessage())
 //                .build());
     }
-
-    //@RequestMapping(value = "/students", method =  RequestMethod.POST)
+//
+//    //@RequestMapping(value = "/students", method =  RequestMethod.POST)
     @PostMapping
     public ResponseEntity<ApiRespone<Student>> save(@RequestBody Student student) {
-        student.setId((int) (Math.random() * 1000000) + 1);
-        students.add(student);
+        student =  studentService.save(student);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiRespone.<Student>builder().data(student).build());
+                .body(ApiRespone.<Student>builder()
+                        .data(student)
+                        .build());
     }
 
 }
