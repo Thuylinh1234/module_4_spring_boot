@@ -1,9 +1,17 @@
-package com.sqc.academy.bai4;
-import com.sqc.academy.bai4.ApiException;
-import com.sqc.academy.bai4.ErrorCode;
-import com.sqc.academy.bai4.ApiResponse;
+package com.sqc.academy.bai4.repository;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.sqc.academy.bai4.JsonResponse;
+import com.sqc.academy.bai4.dto.ApiResponse;
+import com.sqc.academy.bai4.exception.ApiException;
+import com.sqc.academy.bai4.exception.ErrorCode;
+import com.sqc.academy.bai4.exception.Gender;
+import com.sqc.academy.bai4.model.Employee;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -11,18 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Hãy xây dựng API CRUD nhân viên với các thông tin cơ bản sau:
- *
- * name
- * dob (ngày sinh)
- * gender (MALE / FEMALE / OTHER)
- * salary
- * phone
- */
-@RestController
-@RequestMapping("/employees")
-public class EmployeeController {
+@Repository
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public abstract class EmployeeRepository implements IEmployeeRepository {
     private static List<Employee> employees = new ArrayList<>();
 
     static {

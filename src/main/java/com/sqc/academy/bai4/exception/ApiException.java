@@ -1,4 +1,4 @@
-package com.sqc.academy.bai4;
+package com.sqc.academy.bai4.exception;
 
 public class ApiException extends RuntimeException {
     private final ErrorCode errorCode;

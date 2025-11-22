@@ -1,10 +1,10 @@
-package com.sqc.academy.bai4;
+package com.sqc.academy.bai4.model;
 
+import com.sqc.academy.bai4.exception.Gender;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Getter
 @Setter

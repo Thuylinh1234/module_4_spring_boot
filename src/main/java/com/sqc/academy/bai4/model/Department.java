@@ -1,4 +1,4 @@
-package com.sqc.academy.bai4;
+package com.sqc.academy.bai4.model;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

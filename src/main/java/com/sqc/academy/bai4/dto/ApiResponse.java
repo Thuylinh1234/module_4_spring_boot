@@ -1,4 +1,4 @@
-package com.sqc.academy.bai4;
+package com.sqc.academy.bai4.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
