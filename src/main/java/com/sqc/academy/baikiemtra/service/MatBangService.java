@@ -2,11 +2,12 @@ package com.sqc.academy.baikiemtra.service;
 
 import com.sqc.academy.baikiemtra.model.MatBang;
 import com.sqc.academy.baikiemtra.repository.IdMatBangRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
-
+@AllArgsConstructor
 @Service
 public class MatBangService implements IMatBangService {
     IdMatBangRepository repository;
