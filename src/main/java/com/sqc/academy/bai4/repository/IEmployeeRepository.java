@@ -4,8 +4,6 @@ import com.sqc.academy.bai4.dto.EmployeeSearchRequest;
 import com.sqc.academy.bai4.model.Employee;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 public interface IEmployeeRepository {
     List<Employee> findAll();

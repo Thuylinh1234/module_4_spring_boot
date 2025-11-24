@@ -2,7 +2,6 @@ package com.sqc.academy.bai4.repository;
 
 import com.sqc.academy.bai4.model.Department;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 

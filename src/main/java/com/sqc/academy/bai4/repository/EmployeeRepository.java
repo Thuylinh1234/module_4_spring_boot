@@ -1,7 +1,5 @@
 package com.sqc.academy.bai4.repository;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.sqc.academy.bai4.JsonResponse;
 import com.sqc.academy.bai4.dto.ApiResponse;
 import com.sqc.academy.bai4.dto.EmployeeSearchRequest;
 import com.sqc.academy.bai4.exception.ApiException;
@@ -10,7 +8,6 @@ import com.sqc.academy.bai4.exception.Gender;
 import com.sqc.academy.bai4.model.Employee;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;

@@ -3,15 +3,12 @@ package com.sqc.academy.bai4.service;
 import com.sqc.academy.bai4.dto.EmployeeSearchRequest;
 import com.sqc.academy.bai4.exception.ApiException;
 import com.sqc.academy.bai4.exception.ErrorCode;
-import com.sqc.academy.bai4.exception.Gender;
 import com.sqc.academy.bai4.model.Employee;
 import com.sqc.academy.bai4.repository.IEmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
-import java.io.Serializable;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
