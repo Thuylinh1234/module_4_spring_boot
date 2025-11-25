@@ -12,6 +12,6 @@ public interface IEmployeeService {
     Employee updateEmployee(String id, Employee employee);
     void deleteEmployee(String id);
 
-    // Sửa dòng này: Nhận vào object Request thay vì biến rời rạc
+
     List<Employee> search(EmployeeSearchRequest request);
 }

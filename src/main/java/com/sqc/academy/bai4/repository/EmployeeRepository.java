@@ -1,224 +1,204 @@
 package com.sqc.academy.bai4.repository;
 
-import com.sqc.academy.bai4.dto.ApiResponse;
 import com.sqc.academy.bai4.dto.EmployeeSearchRequest;
 import com.sqc.academy.bai4.exception.ApiException;
 import com.sqc.academy.bai4.exception.ErrorCode;
 import com.sqc.academy.bai4.exception.Gender;
 import com.sqc.academy.bai4.model.Employee;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.bind.annotation.*;
 
+import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Repository
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-
 public class EmployeeRepository implements IEmployeeRepository {
-
-    private static List<Employee> employees = new ArrayList<>();
-
-    static {
-        employees.add(new Employee(UUID.randomUUID().toString(), "Nguyễn Văn A", LocalDate.of(1995, 5, 12), Gender.MALE, 1000.0, "0901234567", 1));
-        employees.add(new Employee(UUID.randomUUID().toString(), "Trần Thị B", LocalDate.of(1998, 8, 22), Gender.FEMALE, 1200.0, "0907654321", 2));
-        employees.add(new Employee(UUID.randomUUID().toString(), "Lê Văn C", LocalDate.of(1992, 3, 5), Gender.MALE, 1500.0, "0901122334", 1));
-        employees.add(new Employee(UUID.randomUUID().toString(), "Phạm Thị D", LocalDate.of(2000, 7, 19), Gender.FEMALE, 1100.0, "0909988776", 1));
-        employees.add(new Employee(UUID.randomUUID().toString(), "Ngô Văn E", LocalDate.of(1997, 11, 30), Gender.MALE, 1300.0, "0905566778", 2));
-        employees.add(new Employee(UUID.randomUUID().toString(), "Đặng Thị F", LocalDate.of(1999, 2, 14), Gender.FEMALE, 1400.0, "0903344556", 1));
-    }
-
-
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<Employee>>> getAllEmployees() {
-        return ResponseEntity.ok(ApiResponse.<List<Employee>>builder().data(employees).build());
-    }
-
-
-    @GetMapping("/{id}")
-
-
-//    @PutMapping("/{id}")
-//    public Object updateEmployee(@PathVariable String id, @RequestBody Employee updatedEmp) {
-//        Employee empToUpdate = null; // biến tạm
-//
-//        for (Employee e : employees) {
-//            if (e.getId().equals(id)) {
-//                empToUpdate = e;
-//                break;
-//            }
-//        }
-//
-//        if (empToUpdate == null) { // Kiểm tra nhân viên
-//            throw new ApiException(ErrorCode.EMPLOYEE_NOT_FOUND);
-//        }
-//        // cập nhật
-//        empToUpdate.setName(updatedEmp.getName());
-//        empToUpdate.setDob(updatedEmp.getDob());
-//        empToUpdate.setGender(updatedEmp.getGender());
-//        empToUpdate.setSalary(updatedEmp.getSalary());
-//        empToUpdate.setPhone(updatedEmp.getPhone());
-//
-//        return JsonResponse.ok(empToUpdate); // Trả về response
-//    }
-
-//    @DeleteMapping("/{id}")
-//    public Object deleteEmployee(@PathVariable String id) {
-//        Employee empToDelete = null;
-//
-//        for (Employee e : employees) {
-//            if (e.getId().equals(id)) {
-//                empToDelete = e;
-//                break;
-//            }
-//        }
-//
-//        if (empToDelete == null) {
-//            throw new ApiException(ErrorCode.EMPLOYEE_NOT_FOUND);
-//        }
-//
-//        employees.remove(empToDelete);
-//        return JsonResponse.noContent();
-//    }
-
 
     @Override
     public List<Employee> findAll() {
-        return employees;
-    }
+        List<Employee> list = new ArrayList<>();
+        String sql = "SELECT * FROM employee";
 
+        try (Connection conn = BaseRepository.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet resultSet = ps.executeQuery()) {
+
+            while (resultSet.next()) {
+                list.add(mapRowToEmployee(resultSet));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 
     @Override
     public Employee findById(String id) {
-        Employee found = null;
-        for (Employee e : employees) {
-            if (e.getId().equals(id)) {   // so sánh ID
-                found = e;
-                break;
+        String sql = "SELECT * FROM employee WHERE id = ?";
+        try (Connection conn = BaseRepository.getConnection();
+             PreparedStatement prepared = conn.prepareStatement(sql)) {
+
+            prepared.setString(1, id);
+            ResultSet rs = prepared.executeQuery();
+            if (rs.next()) {
+                return mapRowToEmployee(rs);
             }
-        }
 
-        if (found == null) {
-            throw new ApiException(ErrorCode.EMPLOYEE_NOT_FOUND);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-
-        return found;
+        throw new ApiException(ErrorCode.EMPLOYEE_NOT_FOUND);
     }
-
 
     @Override
     public Employee save(Employee employee) {
-        return null;
+        if (employee.getId() == null || employee.getId().isEmpty()) {
+            // INSERT
+            employee.setId(UUID.randomUUID().toString());
+            String sql = "INSERT INTO employee(id, name, dob, gender, salary, phone, department_id) VALUES(?, ?, ?, ?, ?, ?, ?)";
+
+            try (Connection conn = BaseRepository.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+
+                setPreparedStatement(ps, employee);
+                ps.executeUpdate();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } else {
+            // UPDATE
+            String sql = "UPDATE employee SET name = ?, dob = ?, gender = ?, salary = ?, phone = ?, department_id = ? WHERE id = ?";
+
+            try (Connection conn = BaseRepository.getConnection();
+                 PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+
+                preparedStatement.setString(1, employee.getName());
+                preparedStatement.setDate(2, Date.valueOf(employee.getDob()));
+                preparedStatement.setString(3, employee.getGender().name());
+                preparedStatement.setDouble(4, employee.getSalary());
+                preparedStatement.setString(5, employee.getPhone());
+                preparedStatement.setInt(6, employee.getDepartmentId());
+                preparedStatement.setString(7, employee.getId());
+
+                int updated = preparedStatement.executeUpdate();
+                if (updated == 0) {
+                    throw new ApiException(ErrorCode.EMPLOYEE_NOT_FOUND);
+                }
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return employee;
     }
 
     @Override
     public boolean delete(String id) {
-        Employee empToDelete = null;
+        String sql = "DELETE FROM employee WHERE id = ?";
+        try (Connection conn = BaseRepository.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        for (Employee e : employees) {
-            if (e.getId().equals(id)) {
-                empToDelete = e;
-                break;
+            ps.setString(1, id);
+            int deleted = ps.executeUpdate();
+            if (deleted == 0) {
+                throw new ApiException(ErrorCode.EMPLOYEE_NOT_FOUND);
             }
-        }
+            return true;
 
-        if (empToDelete == null) {
-            throw new ApiException(ErrorCode.EMPLOYEE_NOT_FOUND);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-
-        employees.remove(empToDelete);
-        return true;
+        return false;
     }
-
 
     @Override
     public List<Employee> search(EmployeeSearchRequest request) {
         List<Employee> result = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM employee WHERE 1=1");
+        List<Object> params = new ArrayList<>();
 
-        for (Employee employee : employees) {
+        if (request.getName() != null && !request.getName().isEmpty()) {
+            sql.append(" AND name LIKE ?");
+            params.add("%" + request.getName() + "%");
+        }
+        if (request.getDobFrom() != null) {
+            sql.append(" AND dob >= ?");
+            params.add(Date.valueOf(request.getDobFrom()));
+        }
+        if (request.getDobTo() != null) {
+            sql.append(" AND dob <= ?");
+            params.add(Date.valueOf(request.getDobTo()));
+        }
+        if (request.getGender() != null) {
+            sql.append(" AND gender = ?");
+            params.add(request.getGender().name());
+        }
+        if (request.getPhone() != null && !request.getPhone().isEmpty()) {
+            sql.append(" AND phone LIKE ?");
+            params.add("%" + request.getPhone() + "%");
+        }
+        if (request.getDepartmentId() != null) {
+            sql.append(" AND department_id = ?");
+            params.add(request.getDepartmentId());
+        }
+        if (request.getSalaryRange() != null && !request.getSalaryRange().isEmpty()) {
+            switch (request.getSalaryRange()) {
+                case "lt5":
+                    sql.append(" AND salary < 5000000"); break;
+                case "5-10":
+                    sql.append(" AND salary BETWEEN 5000000 AND 10000000"); break;
+                case "10-20":
+                    sql.append(" AND salary BETWEEN 10000001 AND 20000000"); break;
+                case "gt20":
+                    sql.append(" AND salary > 20000000"); break;
+            }
+        }
 
-            //Lọc theo tên
-            if (request.getName() != null && !request.getName().isEmpty()) {
-                String nameLower = request.getName().toLowerCase();
-                if (!employee.getName().toLowerCase().contains(nameLower)) {
-                    continue;
-                }
+        try (Connection conn = BaseRepository.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
             }
 
-            //Lọc theo ngày sinh từ
-            if (request.getDobFrom() != null) {
-                if (employee.getDob().isBefore(request.getDobFrom())) {
-                    continue;
-                }
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                result.add(mapRowToEmployee(rs));
             }
 
-            //Lọc theo ngày sinh đến
-            if (request.getDobTo() != null) {
-                if (employee.getDob().isAfter(request.getDobTo())) {
-                    continue;
-                }
-            }
-
-            //Lọc theo giới tính
-            if (request.getGender() != null) {
-                if (employee.getGender() != request.getGender()) {
-                    continue;
-                }
-            }
-
-            //Lọc theo số điện thoại
-            if (request.getPhone() != null && !request.getPhone().isEmpty()) {
-                if (!employee.getPhone().contains(request.getPhone())) {
-                    continue;
-                }
-            }
-
-            //Lọc theo phòng ban
-            if (request.getDepartmentId() != null) {
-                if (!employee.getDepartmentId().equals(request.getDepartmentId())) {
-                    continue;
-                }
-            }
-
-            // Lọc theo lương
-            if (request.getSalaryRange() != null && !request.getSalaryRange().isEmpty()) {
-                if (!filterSalary(employee.getSalary(), request.getSalaryRange())) {
-                    continue;
-                }
-            }
-
-            result.add(employee);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         return result;
     }
 
-    // kiểm tra
-    private boolean filterSalary(double salary, String range) {
-        if (range == null) {
-            return true; // Không lọc lương
-        }
 
-        switch (range) {
-            case "lt5":
-                return salary < 5;
+    // mapRowToEmployee → ResultSet → Employee
+    private Employee mapRowToEmployee(ResultSet rs) throws SQLException {
+        return new Employee(
+                rs.getString("id"),
+                rs.getString("name"),
+                rs.getDate("dob").toLocalDate(),
+                Gender.valueOf(rs.getString("gender")),
+                rs.getDouble("salary"),
+                rs.getString("phone"),
+                rs.getInt("department_id")
+        );
+    }
 
-            case "5-10":
-                return salary >= 5 && salary <= 10;
-
-            case "10-20":
-                return salary > 10 && salary <= 20;
-
-            case "gt20":
-                return salary > 20;
-
-            default:
-                return true;
-        }
+    // setPreparedStatement → Employee → PreparedStatement
+    private void setPreparedStatement(PreparedStatement ps, Employee employee) throws SQLException {
+        ps.setString(1, employee.getId());
+        ps.setString(2, employee.getName());
+        ps.setDate(3, Date.valueOf(employee.getDob()));
+        ps.setString(4, employee.getGender().name());
+        ps.setDouble(5, employee.getSalary());
+        ps.setString(6, employee.getPhone());
+        ps.setInt(7, employee.getDepartmentId());
     }
 }

@@ -1,66 +1,100 @@
 package com.sqc.academy.bai4.repository;
 
 import com.sqc.academy.bai4.model.Department;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 @Repository
 public class DepartmentRepository implements IDepartmentRepository {
-    @Autowired
-    private static final List<Department> departments = new ArrayList<>();
-
-    static {
-        departments.add(new Department(1, "Kế Toán"));
-        departments.add(new Department(2, "Nhân Sự"));
-        departments.add(new Department(3, "Kỹ Thuật"));
-    }
 
     @Override
     public List<Department> findAll() {
-        return departments;
+        List<Department> list = new ArrayList<>();
+        String sql = "SELECT * FROM department";
+
+        try (Connection conn = BaseRepository.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(new Department(rs.getInt("id"), rs.getString("name")));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     @Override
     public Department findById(Integer id) {
+        String sql = "SELECT * FROM department WHERE id = ?";
+        try (Connection conn = BaseRepository.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        for (Department d : departments) {
-            if (d.getId().equals(id)) {
-                return d;
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Department(rs.getInt("id"), rs.getString("name"));
             }
-        }
 
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
     @Override
     public Department save(Department department) {
+        if (department.getId() == null) {
+            // INSERT
+            String sql = "INSERT INTO department(name) VALUES(?)";
+            try (Connection conn = BaseRepository.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-        Department existing = findById(department.getId());
+                ps.setString(1, department.getName());
+                ps.executeUpdate();
 
-        if (existing == null) {
-            departments.add(department);
+                ResultSet rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    department.setId(rs.getInt(1));
+                }
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         } else {
-            existing.setName(department.getName());
-        }
+            // UPDATE
+            String sql = "UPDATE department SET name = ? WHERE id = ?";
+            try (Connection conn = BaseRepository.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
 
+                ps.setString(1, department.getName());
+                ps.setInt(2, department.getId());
+                ps.executeUpdate();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
         return department;
     }
 
     @Override
     public boolean delete(Integer id) {
+        String sql = "DELETE FROM department WHERE id = ?";
+        try (Connection conn = BaseRepository.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        Department d = findById(id);
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
 
-        if (d == null) {
-            return false;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-
-        departments.remove(d);
-        return true;
+        return false;
     }
 }
-
